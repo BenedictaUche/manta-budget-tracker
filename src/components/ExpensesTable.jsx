@@ -27,14 +27,14 @@ function ExpensesTable() {
       </div>
 
       {/* Table */}
-      <div className="bg-(--white) p-4 rounded-xl border-(--grey-900)/80 border">
-        <table className="w-full text-left border-collapse">
+      <div className="bg-(--white) p-4 rounded-xl border-(--grey-900)/80 border overflow-x-auto">
+        <table className="min-w-full text-left border-collapse">
           <thead>
             <tr className="text-(--grey-600) tracking-tight font-extrabold text-sm">
-              <th className="pb-3">DATE</th>
-              <th className="pb-3">CATEGORY</th>
-              <th className="pb-3">DESCRIPTION</th>
-              <th className="pb-3">AMOUNT</th>
+              <th className="pb-3 pr-6">DATE</th>
+              <th className="pb-3 pr-6">CATEGORY</th>
+              <th className="pb-3 pr-6">DESCRIPTION</th>
+              <th className="pb-3 pr-6">AMOUNT</th>
             </tr>
           </thead>
           <tbody className="text-sm text-(--grey) tracking-tight">
@@ -43,16 +43,14 @@ function ExpensesTable() {
                 key={index}
                 className="border-t border-(--accent) hover:bg-(--light-blue)/50 rounded-lg duration-300 delay-100 cursor-pointer"
               >
-                <td className="py-3">{expense.date}</td>
-                <td className="py-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${expense.categoryColor}`}
-                  >
+                <td className="py-3 pr-6">{expense.date}</td>
+                <td className="py-3 pr-6">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-(--light-blue) text-(--blue) border border-(--blue)">
                     {expense.category}
                   </span>
                 </td>
-                <td className="py-3">{expense.description}</td>
-                <td className="py-3 font-semibold">{expense.amount}</td>
+                <td className="py-3 pr-6">{expense.description}</td>
+                <td className="py-3 pr-6 font-semibold">{expense.amount}</td>
               </tr>
             ))}
           </tbody>
