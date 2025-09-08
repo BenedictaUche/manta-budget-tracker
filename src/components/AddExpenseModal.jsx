@@ -1,7 +1,8 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Input from "./Input";
 
 export default function AddExpenseModal({ onClose }) {
+  const [fileName, setFileName] = useState("");
   const backdropRef = useRef();
 
   const handleBackdropClick = (e) => {
@@ -37,36 +38,26 @@ export default function AddExpenseModal({ onClose }) {
           </svg>
         </button>
 
-        <h2 className="text-(--black) text-lg font-extrabold mb-4 uppercase tracking-tight">
-          Add Expense
-        </h2>
-
         <form className="space-y-4 tracking-tight">
-          <input
-            className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200"
-            type="text"
-            placeholder="Enter expense description"
-          />
-
-          <div className="flex gap-3">
-            <Input type="number" placeholder="Amount" />
-            <Input type="date" placeholder="yyyy/mm/dd" />
-          </div>
-
-          <select className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200">
-            <option>Select category</option>
-            <option>Transport</option>
-            <option>Groceries</option>
-            <option>Entertainment</option>
-            <option>Bills</option>
-          </select>
-
           <h2 className="text-(--black) text-lg font-extrabold mb-4 uppercase tracking-tight">
-            Or upload a receipt
+            Upload a receipt
           </h2>
-
           {/* Upload Receipt */}
-          <div className="flex flex-col items-center gap-2 border border-dashed border-(--grey-900) rounded-lg p-6 text-center cursor-pointer hover:border-(--blue)/50 hover:border duration-200 text-(--grey-900)">
+          <div className="relative flex flex-col items-center gap-2 border border-dashed border-(--grey-900) rounded-lg p-6 text-center cursor-pointer hover:border-(--blue)/50 hover:border duration-200 text-(--grey-900)">
+            <input
+              type="file"
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              accept="image/*,application/pdf"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setFileName(file.name);
+                } else {
+                  setFileName("");
+                }
+              }}
+            />
+
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -82,7 +73,32 @@ export default function AddExpenseModal({ onClose }) {
               />
             </svg>
 
-            <p>Upload a receipt here</p>
+            {fileName ? (
+              <p className="text-(--blue) font-medium max-w-33 truncate">
+                {fileName}
+              </p>
+            ) : (
+              <p>Upload a receipt here</p>
+            )}
+          </div>
+          <h2 className="text-(--grey) text-base font-extrabold mt-10 mb-4 uppercase tracking-tight">
+            Confirm details
+          </h2>
+          <select className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200">
+            <option>Select category</option>
+            <option>Transport</option>
+            <option>Groceries</option>
+            <option>Entertainment</option>
+            <option>Bills</option>
+          </select>
+          <input
+            className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200"
+            type="text"
+            placeholder=" Description"
+          />
+          <div className="flex gap-3">
+            <Input type="number" placeholder="Amount" />
+            <Input type="date" placeholder="yyyy/mm/dd" />
           </div>
 
           <button

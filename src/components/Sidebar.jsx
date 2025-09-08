@@ -12,7 +12,7 @@ function Sidebar({ user = "David Johnson" }) {
       {/* Hamburger button */}
       <button
         onClick={() => setOpen(true)}
-        className="p-2 text-(--white) lg:hidden fixed top-4 left-4 z-50 bg-(--blue) rounded-md shadow"
+        className="p-2 text-(--white) lg:hidden fixed top-4 left-4 z-50 bg-(--blue) rounded-md shadow cursor-pointer"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -38,12 +38,12 @@ function Sidebar({ user = "David Johnson" }) {
       )}
 
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-(--blue) text-(--white) border-r z-50 transform transition-transform duration-300
-          ${
-            open ? "translate-x-0" : "-translate-x-full"
-          } lg:translate-x-0 lg:static lg:flex`}
+        className={`fixed top-0 left-0 bottom-0 h-full w-64 bg-(--blue) text-(--white) border-r z-50 transform transition-transform duration-300
+    ${
+      open ? "translate-x-0" : "-translate-x-full"
+    } lg:translate-x-0 lg:sticky lg:top-0 lg:flex overflow-y-auto`}
       >
-        <div className="flex flex-col justify-between h-full px-5 py-5">
+        <div className="flex flex-col justify-between h-screen px-5 py-5 ">
           <div>
             <div className="flex items-center justify-between mb-6">
               <Link to="/dashboard">

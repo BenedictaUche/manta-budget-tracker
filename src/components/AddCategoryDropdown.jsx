@@ -13,7 +13,7 @@ export default function AddCategoryDropdown({ onClose, onAddCategory }) {
   };
 
   return (
-    <div className="absolute top-full left-0 mt-2 w-72 rounded-xl shadow-lg bg-(--white) p-4 z-10">
+    <div className="absolute z-20 top-10 left-0 mt-2 w-72 rounded-xl shadow-lg bg-(--white) p-4 z-10">
       <form onSubmit={handleSubmit} className="space-y-3">
         <input
           type="text"
