@@ -12,7 +12,7 @@ export function ExpenseProvider({ children }) {
     }))
   );
 
-  const [budget, setBudget] = useState(120000);
+  const [budget, setBudget] = useState(50000);
   const [receipts, setReceipts] = useState([]);
 
   function addExpense(expense) {

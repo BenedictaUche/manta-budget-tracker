@@ -1,3 +1,4 @@
+// src/pages/Summary.jsx
 import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
@@ -9,18 +10,16 @@ export default function Summary() {
   const [rows, setRows] = useState([]);
   const navigate = useNavigate();
 
-  // available categories (from current expenses)
+  // derive categories from current expenses (dynamic)
   const categories = [...new Set(expenses.map((e) => e.category))];
 
   useEffect(() => {
-    // initialize editable rows from receipts; if none exist, put an empty row for new entry
     if (receipts && receipts.length > 0) {
       setRows(
         receipts.map((r) => ({
           id: r.id || Date.now(),
           date: r.date || new Date().toISOString().slice(0, 10),
-          category:
-            r.category || (categories.length ? categories[0] : "TRANSPORT"),
+          category: r.category || (categories.length ? categories[0] : ""),
           quantity: r.quantity || 1,
           amount: r.amount || 0,
           description: r.description || r.fileName || "",
@@ -31,13 +30,14 @@ export default function Summary() {
         {
           id: Date.now(),
           date: new Date().toISOString().slice(0, 10),
-          category: categories.length ? categories[0] : "TRANSPORT",
+          category: categories.length ? categories[0] : "",
           quantity: 1,
           amount: 0,
           description: "",
         },
       ]);
     }
+    // 👇 remove categories from deps so it doesn't reset when categories change
   }, [receipts]);
 
   const updateRow = (idx, key, value) => {
@@ -57,7 +57,7 @@ export default function Summary() {
       {
         id: Date.now(),
         date: new Date().toISOString().slice(0, 10),
-        category: categories.length ? categories[0] : "TRANSPORT",
+        category: categories.length ? categories[0] : "",
         quantity: 1,
         amount: 0,
         description: "",
@@ -67,12 +67,13 @@ export default function Summary() {
 
   const handleSaveAll = () => {
     rows.forEach((r) => {
+      // send unit amount and quantity; your context can decide how to store/multiply
       addExpense({
         date: r.date,
-        category: r.category,
+        category: r.category || "UNCATEGORIZED",
         description: r.description,
-        amount: Number(r.amount),
-        quantity: Number(r.quantity),
+        amount: Number(r.amount) || 0,
+        quantity: Number(r.quantity) || 1,
       });
     });
     clearReceipts();
@@ -124,16 +125,17 @@ export default function Summary() {
                           }
                           className="px-3 py-1 rounded-full text-xs font-medium bg-(--light-blue) text-(--blue) border border-(--blue)"
                         >
-                          {categories.length
-                            ? categories.map((c) => (
-                                <option key={c}>{c}</option>
-                              ))
-                            : [
-                                "TRANSPORT",
-                                "GROCERIES",
-                                "ENTERTAINMENT",
-                                "BILLS",
-                              ].map((c) => <option key={c}>{c}</option>)}
+                          {categories.length ? (
+                            categories.map((c) => (
+                              <option key={c} value={c}>
+                                {c}
+                              </option>
+                            ))
+                          ) : (
+                            <option value="" disabled>
+                              Create a category first
+                            </option>
+                          )}
                         </select>
                       </td>
                       <td className="py-3 pr-6">
