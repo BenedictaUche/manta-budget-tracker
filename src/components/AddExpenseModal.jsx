@@ -1,14 +1,35 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useContext } from "react";
 import Input from "./Input";
+import { ExpenseContext } from "../context/ExpenseContext";
 
 export default function AddExpenseModal({ onClose }) {
-  const [fileName, setFileName] = useState("");
+  const { addExpense } = useContext(ExpenseContext);
   const backdropRef = useRef();
+  const [amount, setAmount] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+
+  const [form, setForm] = useState({
+    date: new Date().toISOString().slice(0, 10),
+    category: "TRANSPORT",
+    description: "",
+  });
 
   const handleBackdropClick = (e) => {
     if (e.target === backdropRef.current) {
       onClose();
     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    addExpense({
+      ...form,
+      quantity: Number(quantity || 1),
+      amount: Number(amount || 0),
+    });
+
+    onClose();
   };
 
   return (
@@ -38,67 +59,54 @@ export default function AddExpenseModal({ onClose }) {
           </svg>
         </button>
 
-        <form className="space-y-4 tracking-tight">
-          <h2 className="text-(--black) text-lg font-extrabold mb-4 uppercase tracking-tight">
-            Upload a receipt
+        <form onSubmit={handleSubmit} className="space-y-4 tracking-tight">
+          <h2 className="text-(--grey) text-lg font-extrabold mb-4 uppercase tracking-tight">
+            Add an expense
           </h2>
-          {/* Upload Receipt */}
-          <div className="relative flex flex-col items-center gap-2 border border-dashed border-(--grey-900) rounded-lg p-6 text-center cursor-pointer hover:border-(--blue)/50 hover:border duration-200 text-(--grey-900)">
-            <input
-              type="file"
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              accept="image/*,application/pdf"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  setFileName(file.name);
-                } else {
-                  setFileName("");
-                }
-              }}
-            />
-
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="size-6"
+          <div className="flex gap-3">
+            <select
+              value={form.category}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, category: e.target.value }))
+              }
+              className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-              />
-            </svg>
-
-            {fileName ? (
-              <p className="text-(--blue) font-medium max-w-33 truncate">
-                {fileName}
-              </p>
-            ) : (
-              <p>Upload a receipt here</p>
-            )}
+              <option>TRANSPORT</option>
+              <option>GROCERIES</option>
+              <option>ENTERTAINMENT</option>
+              <option>BILLS</option>
+            </select>
+            <Input
+              type="number"
+              placeholder="Quantity"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
           </div>
-          <h2 className="text-(--grey) text-base font-extrabold mt-10 mb-4 uppercase tracking-tight">
-            Confirm details
-          </h2>
-          <select className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200">
-            <option>Select category</option>
-            <option>Transport</option>
-            <option>Groceries</option>
-            <option>Entertainment</option>
-            <option>Bills</option>
-          </select>
+
           <input
             className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200"
             type="text"
             placeholder=" Description"
+            value={form.description}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, description: e.target.value }))
+            }
           />
+
           <div className="flex gap-3">
-            <Input type="number" placeholder="Amount" />
-            <Input type="date" placeholder="yyyy/mm/dd" />
+            <Input
+              type="number"
+              placeholder="Amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+            <Input
+              type="date"
+              placeholder="yyyy/mm/dd"
+              value={form.date}
+              onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+            />
           </div>
 
           <button

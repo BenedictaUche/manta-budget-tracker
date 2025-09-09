@@ -1,18 +1,15 @@
-import { useState } from "react";
+import { useContext } from "react";
 import Sidebar from "../components/Sidebar";
-import { expenses as initialExpenses } from "../data";
 import ExpensesTable from "../components/ExpensesTable";
+import { ExpenseContext } from "../context/ExpenseContext";
 
 function Dashboard() {
   const user = "David Johnson";
+  const { expenses, budget } = useContext(ExpenseContext);
 
-  // 🔹 Local budget state
-  const [budget, setBudget] = useState(120000);
-  const [expenses, setExpenses] = useState(initialExpenses);
-
-  // 🔹 Calculate totals
+  // total takes quantity into account
   const totalExpenses = expenses.reduce(
-    (acc, exp) => acc + parseFloat(exp.amount || 0),
+    (acc, exp) => acc + (Number(exp.amount) || 0) * (Number(exp.quantity) || 1),
     0
   );
   const remainingBalance = budget - totalExpenses;
