@@ -1,18 +1,27 @@
+// src/components/AddExpenseModal.jsx
 import { useRef, useState, useContext } from "react";
 import Input from "./Input";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 export default function AddExpenseModal({ onClose }) {
-  const { addExpense } = useContext(ExpenseContext);
+  const { addExpense, expenses } = useContext(ExpenseContext);
   const backdropRef = useRef();
-  const [amount, setAmount] = useState(0);
-  const [quantity, setQuantity] = useState(1);
+
+  const [amount, setAmount] = useState(""); // unit price as string while typing
+  const [quantity, setQuantity] = useState("1"); // keep as string for controlled input
 
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
-    category: "TRANSPORT",
+    category: "",
     description: "",
   });
+
+  const categories = [...new Set(expenses.map((e) => e.category))];
+
+  // if a category isn't selected yet, default to first available
+  if (!form.category && categories.length) {
+    form.category = categories[0];
+  }
 
   const handleBackdropClick = (e) => {
     if (e.target === backdropRef.current) {
@@ -23,10 +32,13 @@ export default function AddExpenseModal({ onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const unit = Number(amount) || 0;
+    const qty = Number(quantity) || 1;
+
     addExpense({
       ...form,
-      quantity: Number(quantity || 1),
-      amount: Number(amount || 0),
+      quantity: qty,
+      amount: unit, // treat as unit price — context should multiply (or we can store total if desired)
     });
 
     onClose();
@@ -63,6 +75,7 @@ export default function AddExpenseModal({ onClose }) {
           <h2 className="text-(--grey) text-lg font-extrabold mb-4 uppercase tracking-tight">
             Add an expense
           </h2>
+
           <div className="flex gap-3">
             <select
               value={form.category}
@@ -71,16 +84,22 @@ export default function AddExpenseModal({ onClose }) {
               }
               className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200"
             >
-              <option>TRANSPORT</option>
-              <option>GROCERIES</option>
-              <option>ENTERTAINMENT</option>
-              <option>BILLS</option>
+              {categories.length ? (
+                categories.map((c) => <option key={c}>{c}</option>)
+              ) : (
+                <option value="" disabled>
+                  Create a category first
+                </option>
+              )}
             </select>
+
             <Input
               type="number"
+              min="1"
               placeholder="Quantity"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
+              required
             />
           </div>
 
@@ -97,21 +116,24 @@ export default function AddExpenseModal({ onClose }) {
           <div className="flex gap-3">
             <Input
               type="number"
-              placeholder="Amount"
+              min="0"
+              placeholder="Unit Amount (1 item)"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              required
             />
             <Input
               type="date"
               placeholder="yyyy/mm/dd"
               value={form.date}
               onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+              required
             />
           </div>
 
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 bg-(--blue) text-(--white) font-medium py-3 rounded-lg hover:bg-(--blue)/85 transition cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 bg-(--blue) text-(--white) font-medium py-3 rounded-lg hover:bg-(--blue)/85 transition cursor-pointer disabled:opacity-50"
           >
             Add expense +
           </button>

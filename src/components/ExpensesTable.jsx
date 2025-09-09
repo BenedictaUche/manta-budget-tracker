@@ -1,12 +1,16 @@
 import { useContext } from "react";
 import { ExpenseContext } from "../context/ExpenseContext";
 
-function ExpensesTable() {
+function ExpensesTable({ filteredCategory = null }) {
   const { expenses } = useContext(ExpenseContext);
+
+  const rows = filteredCategory
+    ? expenses.filter((e) => e.category === filteredCategory)
+    : expenses;
 
   return (
     <div className="bg-(--white) rounded-xl border border-(--grey-900)/80 overflow-hidden pl-6">
-      {expenses.length === 0 ? (
+      {rows.length === 0 ? (
         <p className="p-6 text-(--grey-600) italic">
           No expenses added yet. Go to the expenses page to add one!
         </p>
@@ -23,9 +27,9 @@ function ExpensesTable() {
               </tr>
             </thead>
             <tbody className="text-sm text-(--grey) tracking-tight">
-              {expenses.map((expense, index) => (
+              {rows.map((expense, index) => (
                 <tr
-                  key={index}
+                  key={expense.id ?? index}
                   className="border-t border-(--accent) hover:bg-(--light-blue)/50 rounded-lg duration-300 delay-100 cursor-pointer"
                 >
                   <td className="py-3 pr-6">{expense.date}</td>
