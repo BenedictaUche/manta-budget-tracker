@@ -9,7 +9,6 @@ function Sidebar({ user = "David Johnson" }) {
 
   return (
     <>
-      {/* Hamburger button */}
       <button
         onClick={() => setOpen(true)}
         className="p-2 text-(--white) lg:hidden fixed top-4 left-4 z-50 bg-(--blue) rounded-md shadow cursor-pointer"

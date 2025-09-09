@@ -1,4 +1,3 @@
-// src/components/AddExpenseModal.jsx
 import { useRef, useState, useContext } from "react";
 import Input from "./Input";
 import { ExpenseContext } from "../context/ExpenseContext";

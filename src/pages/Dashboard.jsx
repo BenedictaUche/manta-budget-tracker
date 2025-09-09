@@ -7,7 +7,6 @@ function Dashboard() {
   const user = "David Johnson";
   const { expenses, budget } = useContext(ExpenseContext);
 
-  // total takes quantity into account (amount already contains total from context)
   const totalExpenses = expenses.reduce(
     (acc, exp) => acc + (Number(exp.amount) || 0),
     0

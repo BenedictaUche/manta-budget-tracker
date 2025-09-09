@@ -1,11 +1,5 @@
-// src/components/Input.jsx
 import React from "react";
 
-/**
- * Generic controlled input that forwards all props.
- * Keeps your exact styling but allows parent components
- * to pass value, onChange, required, className, etc.
- */
 export default function Input({
   className = "",
   children,
@@ -15,8 +9,6 @@ export default function Input({
   const baseClass =
     "border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200";
 
-  // Backwards-compatible: if a child exists (you previously used <Input>true</Input>),
-  // treat that as `required` unless explicit required prop is provided.
   const isRequired = required ?? Boolean(children);
 
   return (
