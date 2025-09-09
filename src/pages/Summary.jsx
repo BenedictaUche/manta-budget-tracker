@@ -20,8 +20,8 @@ export default function Summary() {
           id: r.id || Date.now(),
           date: r.date || new Date().toISOString().slice(0, 10),
           category: r.category || (categories.length ? categories[0] : ""),
-          quantity: r.quantity || 1,
-          amount: r.amount || 0,
+          quantity: r.quantity,
+          amount: r.amount,
           description: r.description || r.fileName || "",
         }))
       );
