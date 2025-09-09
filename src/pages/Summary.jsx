@@ -10,7 +10,6 @@ export default function Summary() {
   const [rows, setRows] = useState([]);
   const navigate = useNavigate();
 
-  // derive categories from current expenses (dynamic)
   const categories = [...new Set(expenses.map((e) => e.category))];
 
   useEffect(() => {
@@ -37,7 +36,6 @@ export default function Summary() {
         },
       ]);
     }
-    // 👇 remove categories from deps so it doesn't reset when categories change
   }, [receipts]);
 
   const updateRow = (idx, key, value) => {
@@ -67,7 +65,6 @@ export default function Summary() {
 
   const handleSaveAll = () => {
     rows.forEach((r) => {
-      // send unit amount and quantity; your context can decide how to store/multiply
       addExpense({
         date: r.date,
         category: r.category || "UNCATEGORIZED",
