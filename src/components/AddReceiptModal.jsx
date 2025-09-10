@@ -4,12 +4,14 @@ import { ExpenseContext } from "../context/ExpenseContext";
 
 export default function AddReceiptModal({ onClose }) {
   const [fileName, setFileName] = useState("");
-  const [receiptFile, setReceiptFile] = useState(null); // ✅ Add this state
+  const [receiptFile, setReceiptFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const backdropRef = useRef();
   // const navigate = useNavigate();
   // const { addReceipt } = useContext(ExpenseContext);
 
   const handleBackdropClick = (e) => {
+    if (isUploading) return;
     if (e.target === backdropRef.current) {
       onClose();
     }
@@ -79,8 +81,9 @@ export default function AddReceiptModal({ onClose }) {
   const handleUpload = async (e) => {
     // Make the function async
     e.preventDefault();
-    if (!receiptFile) return;
+    if (!receiptFile || isUploading) return;
 
+    setIsUploading(true);
     console.log("Starting receipt analysis...");
 
     // Call the Vision API and wait for it to finish
@@ -99,7 +102,7 @@ export default function AddReceiptModal({ onClose }) {
   addReceipt(receiptObj);
   navigate("/summary");
   */
-
+    setIsUploading(false);
     onClose();
   };
 
@@ -112,6 +115,7 @@ export default function AddReceiptModal({ onClose }) {
       <div className="bg-(--white) rounded-2xl shadow-lg max-w-[500px] p-6 relative">
         <button
           onClick={onClose}
+          disabled={isUploading}
           className="absolute top-4 right-4 text-(--grey) hover:text-(--black) cursor-pointer"
         >
           <svg
@@ -179,13 +183,41 @@ export default function AddReceiptModal({ onClose }) {
           <div className="mt-4 flex gap-2">
             <button
               type="submit"
+              disabled={isUploading || !receiptFile}
               className="w-full flex items-center justify-center gap-2 bg-(--blue) text-(--white) font-medium py-3 rounded-lg hover:bg-(--blue)/85 transition cursor-pointer"
             >
-              Upload and Review
+              {isUploading ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Processing...
+                </>
+              ) : (
+                "Upload and Review"
+              )}
             </button>
             <button
               type="button"
               onClick={onClose}
+              disabled={isUploading}
               className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 rounded-lg"
             >
               Cancel
