@@ -3,23 +3,21 @@ import Input from "./Input";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 export default function AddExpenseModal({ onClose }) {
-  const { addExpense, expenses } = useContext(ExpenseContext);
+  const { categories } = useContext(ExpenseContext);
   const backdropRef = useRef();
 
-  const [amount, setAmount] = useState(""); // unit price as string while typing
-  const [quantity, setQuantity] = useState("1"); // keep as string for controlled input
+  const [amount, setAmount] = useState("");
+  const [quantity, setQuantity] = useState("1");
 
-  const [form, setForm] = useState({
-    date: new Date().toISOString().slice(0, 10),
-    category: "",
+  const [newExpense, setNewExpense] = useState({
     description: "",
+    category: "",
+    unit_amount: "",
+    total_amount: "",
   });
 
-  const categories = [...new Set(expenses.map((e) => e.category))];
-
-  // if a category isn't selected yet, default to first available
-  if (!form.category && categories.length) {
-    form.category = categories[0];
+  if (!newExpense.category && categories.length) {
+    newExpense.category = categories[0];
   }
 
   const handleBackdropClick = (e) => {
@@ -30,15 +28,6 @@ export default function AddExpenseModal({ onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const unit = Number(amount) || 0;
-    const qty = Number(quantity) || 1;
-
-    addExpense({
-      ...form,
-      quantity: qty,
-      amount: unit, // treat as unit price — context should multiply (or we can store total if desired)
-    });
 
     onClose();
   };
@@ -77,9 +66,9 @@ export default function AddExpenseModal({ onClose }) {
 
           <div className="flex gap-3">
             <select
-              value={form.category}
+              value={newExpense.category}
               onChange={(e) =>
-                setForm((p) => ({ ...p, category: e.target.value }))
+                setNewExpense((p) => ({ ...p, category: e.target.value }))
               }
               className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200"
             >
@@ -106,9 +95,9 @@ export default function AddExpenseModal({ onClose }) {
             className="w-full border bg-(--white) border-(--grey-900) text-(--black) py-3 px-4 rounded focus:border-(--blue)/50 focus:outline-none duration-200"
             type="text"
             placeholder=" Description"
-            value={form.description}
+            value={newExpense.description}
             onChange={(e) =>
-              setForm((p) => ({ ...p, description: e.target.value }))
+              setNewExpense((p) => ({ ...p, description: e.target.value }))
             }
           />
 
@@ -124,8 +113,10 @@ export default function AddExpenseModal({ onClose }) {
             <Input
               type="date"
               placeholder="yyyy/mm/dd"
-              value={form.date}
-              onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+              value={newExpense.date}
+              onChange={(e) =>
+                setNewExpense((p) => ({ ...p, date: e.target.value }))
+              }
               required
             />
           </div>
