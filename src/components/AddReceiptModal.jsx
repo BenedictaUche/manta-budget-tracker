@@ -1,12 +1,13 @@
-import { useRef, useState, useContext } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 export default function AddReceiptModal({ onClose }) {
   const [fileName, setFileName] = useState("");
+  const [receiptFile, setReceiptFile] = useState(null);
+
   const backdropRef = useRef();
   const navigate = useNavigate();
-  const { addReceipt } = useContext(ExpenseContext);
 
   const handleBackdropClick = (e) => {
     if (e.target === backdropRef.current) {
@@ -14,15 +15,54 @@ export default function AddReceiptModal({ onClose }) {
     }
   };
 
-  const handleUpload = (e) => {
+  async function analyzeReceiptWithVision(file) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    await new Promise((resolve, reject) => {
+      reader.onloadend = async () => {
+        try {
+          const result = reader.result.split(",")[1];
+
+          const apiKey = import.meta.env.VITE_GOOGLE_VISION_API_KEY;
+          const url = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+
+          const body = {
+            requests: [
+              {
+                image: { content: result },
+                features: [{ type: "TEXT_DETECTION" }],
+              },
+            ],
+          };
+
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+
+          const data = await res.json();
+
+          console.log(data, "response");
+        } catch (err) {
+          console.log(err);
+        }
+      };
+    });
+  }
+
+  const handleUpload = async (e) => {
     e.preventDefault();
     if (!fileName) return;
-    const receiptObj = {
-      id: Date.now(),
-      fileName,
-      date: new Date().toISOString().slice(0, 10),
-    };
-    addReceipt(receiptObj);
+    // const receiptObj = {
+    //   id: Date.now(),
+    //   fileName,
+    //   date: new Date().toISOString().slice(0, 10),
+    // };
+    // addReceipt(receiptObj);
+
+    await analyzeReceiptWithVision(receiptFile);
     onClose();
     navigate("/summary");
   };
@@ -66,8 +106,12 @@ export default function AddReceiptModal({ onClose }) {
               accept="image/*,application/pdf"
               onChange={(e) => {
                 const file = e.target.files[0];
-                if (file) setFileName(file.name);
-                else setFileName("");
+                if (file) {
+                  setFileName(file.name);
+                  setReceiptFile(file);
+                } else {
+                  setFileName("");
+                }
               }}
             />
 

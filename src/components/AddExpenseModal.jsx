@@ -3,7 +3,7 @@ import Input from "./Input";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 export default function AddExpenseModal({ onClose }) {
-  const { categories } = useContext(ExpenseContext);
+  const { categories, addExpense } = useContext(ExpenseContext);
   const backdropRef = useRef();
 
   const [amount, setAmount] = useState("");
@@ -13,7 +13,8 @@ export default function AddExpenseModal({ onClose }) {
     description: "",
     category: "",
     unit_amount: "",
-    total_amount: "",
+    currency: "$",
+    // total_amount: "",
   });
 
   if (!newExpense.category && categories.length) {
@@ -26,8 +27,13 @@ export default function AddExpenseModal({ onClose }) {
     }
   };
 
+  // handle submit
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    addExpense({
+      ...newExpense,
+    });
 
     onClose();
   };
