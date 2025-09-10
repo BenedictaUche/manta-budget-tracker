@@ -1,12 +1,13 @@
-import { useRef, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
+// import { useNavigate } from "react-router-dom";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 export default function AddReceiptModal({ onClose }) {
   const [fileName, setFileName] = useState("");
+  const [receiptFile, setReceiptFile] = useState(null); // ✅ Add this state
   const backdropRef = useRef();
-  const navigate = useNavigate();
-  const { addReceipt } = useContext(ExpenseContext);
+  // const navigate = useNavigate();
+  // const { addReceipt } = useContext(ExpenseContext);
 
   const handleBackdropClick = (e) => {
     if (e.target === backdropRef.current) {
@@ -14,17 +15,92 @@ export default function AddReceiptModal({ onClose }) {
     }
   };
 
-  const handleUpload = (e) => {
+  // const handleUpload = (e) => {
+  //   e.preventDefault();
+  //   if (!fileName) return;
+  //   const receiptObj = {
+  //     id: Date.now(),
+  //     fileName,
+  //     date: new Date().toISOString().slice(0, 10),
+  //   };
+  //   addReceipt(receiptObj);
+  //   onClose();
+  //   navigate("/summary");
+  // };
+
+  async function analyzeReceiptWithVision(file) {
+    // 1. Read the file as a Base64 string for the API
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    // Use a Promise to handle the async nature of FileReader
+    await new Promise((resolve, reject) => {
+      reader.onloadend = async () => {
+        try {
+          const base64Image = reader.result.split(",")[1];
+          const apiKey = import.meta.env.VITE_GOOGLE_VISION_API_KEY;
+          const url = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+
+          const body = {
+            requests: [
+              {
+                image: { content: base64Image },
+                features: [{ type: "TEXT_DETECTION" }],
+              },
+            ],
+          };
+
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+
+          const data = await res.json();
+          const annotations = data.responses[0].textAnnotations;
+
+          if (annotations && annotations.length > 0) {
+            const fullReceiptText = annotations[0].description;
+
+            console.log("--- Extracted Receipt Text (from Google Vision) ---");
+            console.log(fullReceiptText);
+          } else {
+            console.log("No text detected in the image.");
+          }
+          resolve();
+        } catch (err) {
+          console.error("Error calling Vision API:", err);
+          reject(err);
+        }
+      };
+    });
+  }
+
+  const handleUpload = async (e) => {
+    // Make the function async
     e.preventDefault();
-    if (!fileName) return;
-    const receiptObj = {
-      id: Date.now(),
-      fileName,
-      date: new Date().toISOString().slice(0, 10),
-    };
-    addReceipt(receiptObj);
+    if (!receiptFile) return;
+
+    console.log("Starting receipt analysis...");
+
+    // Call the Vision API and wait for it to finish
+    await analyzeReceiptWithVision(receiptFile);
+
+    console.log("Analysis complete. You can see the result above.");
+
+    // For the demo, we are done. We won't add it to the table yet.
+    // The lines below can be used later.
+    /*
+  const receiptObj = {
+    id: Date.now(),
+    fileName,
+    date: new Date().toISOString().slice(0, 10),
+  };
+  addReceipt(receiptObj);
+  navigate("/summary");
+  */
+
     onClose();
-    navigate("/summary");
   };
 
   return (
@@ -66,8 +142,13 @@ export default function AddReceiptModal({ onClose }) {
               accept="image/*,application/pdf"
               onChange={(e) => {
                 const file = e.target.files[0];
-                if (file) setFileName(file.name);
-                else setFileName("");
+                if (file) {
+                  setFileName(file.name);
+                  setReceiptFile(file);
+                } else {
+                  setFileName("");
+                  setReceiptFile(null);
+                }
               }}
             />
 

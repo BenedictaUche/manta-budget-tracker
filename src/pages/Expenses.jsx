@@ -7,17 +7,14 @@ import ExpensesTable from "../components/ExpensesTable";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 function Expenses() {
-  const { expenses, addCategory, budget, setBudget } =
+  const { addCategory, budget, setBudget, categories } =
     useContext(ExpenseContext);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  const categories = [...new Set(expenses.map((e) => e.category))];
-
   const handleAddCategory = (newCategory) => {
-    if (categories.includes(newCategory)) return;
     addCategory(newCategory);
   };
 
@@ -160,7 +157,12 @@ function Expenses() {
             <AddReceiptModal onClose={() => setShowUploadModal(false)} />
           )}
           {showExpenseModal && (
-            <AddExpenseModal onClose={() => setShowExpenseModal(false)} />
+            <AddExpenseModal
+              onClose={() => {
+                setShowExpenseModal(false);
+                setSelectedCategory(null);
+              }}
+            />
           )}
         </header>
       </div>

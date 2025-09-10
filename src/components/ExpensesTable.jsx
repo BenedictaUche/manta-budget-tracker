@@ -2,11 +2,21 @@ import { useContext } from "react";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 function ExpensesTable({ filteredCategory = null }) {
-  const { expenses } = useContext(ExpenseContext);
+  const { expenses, loading } = useContext(ExpenseContext);
 
   const rows = filteredCategory
     ? expenses.filter((e) => e.category === filteredCategory)
     : expenses;
+
+  if (loading) {
+    return (
+      <div className="bg-(--white) rounded-xl border border-(--grey-900)/80 p-6">
+        <p className="text-(--grey-600) italic animate-pulse">
+          Loading expenses...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-(--white) rounded-xl border border-(--grey-900)/80 overflow-hidden pl-6">
@@ -15,7 +25,7 @@ function ExpensesTable({ filteredCategory = null }) {
           No expenses added yet. Go to the expenses page to add one!
         </p>
       ) : (
-        <div className="max-h-[300px] overflow-y-auto overflow-x-auto">
+        <div className="max-h-[800px] overflow-y-auto overflow-x-auto">
           <table className="min-w-full text-left border-collapse">
             <thead className="sticky top-0 bg-(--white) z-10">
               <tr className="text-(--grey-600) tracking-tight font-extrabold text-sm">
