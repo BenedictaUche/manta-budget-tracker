@@ -64,7 +64,7 @@ export default function AddReceiptModal({ onClose }) {
 
     await analyzeReceiptWithVision(receiptFile);
     onClose();
-    navigate("/summary");
+    // navigate("/summary");
   };
 
   return (
