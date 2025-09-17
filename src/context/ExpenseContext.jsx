@@ -28,9 +28,10 @@ export function ExpenseProvider({ children }) {
   }
 
   async function addExpense(expense) {
-    const quantity = expense.quantity;
+    const quantity = Number(expense.quantity) || 1;
+    const unitAmount = Number(expense.amount) || 0;
 
-    const unitAmount = expense.amount;
+    const totalAmount = quantity * unitAmount;
 
     const newExpensePayload = {
       date: expense.date,
@@ -39,6 +40,7 @@ export function ExpenseProvider({ children }) {
       currency: "$",
       quantity: quantity,
       unit_amount: unitAmount,
+      total_amount: totalAmount,
     };
 
     try {

@@ -15,7 +15,7 @@ function ExpensesTable({ filteredCategory = null }) {
           No expenses added yet. Go to the expenses page to add one!
         </p>
       ) : (
-        <div className="max-h-[300px] overflow-y-auto overflow-x-auto">
+        <div className="max-h-[800px] overflow-y-auto overflow-x-auto">
           <table className="min-w-full text-left border-collapse">
             <thead className="sticky top-0 bg-(--white) z-10">
               <tr className="text-(--grey-600) tracking-tight font-extrabold text-sm">
@@ -40,7 +40,7 @@ function ExpensesTable({ filteredCategory = null }) {
                   </td>
                   <td className="py-3 pr-6">{expense.description}</td>
                   <td className="py-3 pr-6">{expense.quantity}</td>
-                  <td className="py-3 pr-6 font-semibold">₦{expense.amount}</td>
+                  <td className="py-3 pr-6 font-semibold">${expense.amount}</td>
                 </tr>
               ))}
             </tbody>
