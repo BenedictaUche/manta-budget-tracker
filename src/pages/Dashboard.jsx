@@ -46,7 +46,7 @@ function Dashboard() {
                   </span>
                 </div>
                 <div className="font-bold text-2xl sm:text-3xl text-(--white)">
-                  ₦{budget.toLocaleString()}
+                  ${budget.toLocaleString()}
                   <span className="text-xs sm:text-sm text-(--light-green)">
                     .00
                   </span>
@@ -73,7 +73,7 @@ function Dashboard() {
                   </span>
                 </div>
                 <div className="font-bold text-2xl sm:text-3xl text-(--white)">
-                  ₦{totalExpenses.toLocaleString()}
+                  ${totalExpenses.toLocaleString()}
                   <span className="text-xs sm:text-sm text-(--light-yellow)">
                     .00
                   </span>
@@ -103,7 +103,7 @@ function Dashboard() {
                     </span>
                   </div>
                   <div className="font-bold text-2xl sm:text-3xl text-(--white)">
-                    ₦{remainingBalance.toLocaleString()}
+                    ${remainingBalance.toLocaleString()}
                     <span className="text-xs sm:text-sm text-(--light-blue)">
                       .00
                     </span>
@@ -131,7 +131,7 @@ function Dashboard() {
                     </span>
                   </div>
                   <div className="font-bold text-2xl sm:text-3xl text-(--white)">
-                    ₦{remainingBalance.toLocaleString()}
+                    ${remainingBalance.toLocaleString()}
                     <span className="text-xs sm:text-sm text-(--light-blue)">
                       .00
                     </span>

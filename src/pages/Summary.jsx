@@ -1,35 +1,36 @@
-// src/pages/Summary.jsx
 import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 export default function Summary() {
-  const { receipts, clearReceipts, addExpense, expenses } =
+  const { receipts, clearReceipts, addExpense, categories } =
     useContext(ExpenseContext);
   const [rows, setRows] = useState([]);
+
+  const [summaryDate, setSummaryDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+
   const navigate = useNavigate();
 
-  // derive categories from current expenses (dynamic)
-  const categories = [...new Set(expenses.map((e) => e.category))];
-
   useEffect(() => {
-    if (receipts && receipts.length > 0) {
+    if (receipts && receipts.length > 0 && receipts[0].items) {
+      const geminiItems = receipts[0].items;
       setRows(
-        receipts.map((r) => ({
-          id: r.id || Date.now(),
-          date: r.date || new Date().toISOString().slice(0, 10),
-          category: r.category || (categories.length ? categories[0] : ""),
-          quantity: r.quantity,
-          amount: r.amount,
-          description: r.description || r.fileName || "",
+        geminiItems.map((item) => ({
+          id: Date.now() + Math.random(),
+          category:
+            item.category || (categories.length ? categories[0] : "Other"),
+          quantity: item.quantity || 1,
+          amount: item.amount || 0,
+          description: item.description || "",
         }))
       );
     } else {
       setRows([
         {
           id: Date.now(),
-          date: new Date().toISOString().slice(0, 10),
           category: categories.length ? categories[0] : "",
           quantity: 1,
           amount: 0,
@@ -37,7 +38,6 @@ export default function Summary() {
         },
       ]);
     }
-    // 👇 remove categories from deps so it doesn't reset when categories change
   }, [receipts]);
 
   const updateRow = (idx, key, value) => {
@@ -56,7 +56,6 @@ export default function Summary() {
       ...p,
       {
         id: Date.now(),
-        date: new Date().toISOString().slice(0, 10),
         category: categories.length ? categories[0] : "",
         quantity: 1,
         amount: 0,
@@ -66,14 +65,11 @@ export default function Summary() {
   };
 
   const handleSaveAll = () => {
+    console.log(rows, "rows");
     rows.forEach((r) => {
-      // send unit amount and quantity; your context can decide how to store/multiply
       addExpense({
-        date: r.date,
-        category: r.category || "UNCATEGORIZED",
-        description: r.description,
-        amount: Number(r.amount) || 0,
-        quantity: Number(r.quantity) || 1,
+        ...r,
+        date: summaryDate,
       });
     });
     clearReceipts();
@@ -93,15 +89,27 @@ export default function Summary() {
           </p>
 
           <div className="bg-(--white) rounded-xl border border-(--grey-900)/80 overflow-hidden p-4">
+            <div className="mb-4">
+              <label className="block text-(--grey-600) font-extrabold text-sm mb-2">
+                EXPENSE DATE
+              </label>
+              <input
+                type="date"
+                value={summaryDate}
+                onChange={(e) => setSummaryDate(e.target.value)}
+                className="border bg-(--white) border-(--grey-600) text-(--black) py-2 px-2 rounded"
+              />
+            </div>
+
             <div className="overflow-x-auto">
               <table className="min-w-full text-left border-collapse">
                 <thead className="text-(--grey-600) tracking-tight font-extrabold text-sm">
                   <tr>
-                    <th className="py-3 pr-6">DATE</th>
+                    <th className="py-3 pr-6">DESCRIPTION</th>
                     <th className="py-3 pr-6">CATEGORY</th>
                     <th className="py-3 pr-6">QUANTITY</th>
                     <th className="py-3 pr-6">UNIT AMOUNT</th>
-                    <th className="py-3 pr-6">DESCRIPTION</th>
+                    <th className="py-3 pr-6">TOTAL AMOUNT</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm text-(--grey) tracking-tight">
@@ -109,12 +117,12 @@ export default function Summary() {
                     <tr key={row.id} className="border-t border-(--accent)">
                       <td className="py-3 pr-6">
                         <input
-                          type="date"
-                          value={row.date}
+                          type="text"
+                          value={row.description}
                           onChange={(e) =>
-                            updateRow(idx, "date", e.target.value)
+                            updateRow(idx, "description", e.target.value)
                           }
-                          className="border bg-(--white) border-(--grey-600) text-(--black) py-2 px-2 rounded"
+                          className="border bg-(--white) border-(--grey-600)  text-(--black) py-2 px-2 rounded w-full"
                         />
                       </td>
                       <td className="py-3 pr-6">
@@ -123,7 +131,7 @@ export default function Summary() {
                           onChange={(e) =>
                             updateRow(idx, "category", e.target.value)
                           }
-                          className="px-3 py-1 rounded-full text-xs font-medium bg-(--light-blue) text-(--blue) border border-(--blue)"
+                          className="border bg-(--white) border-(--grey-600) text-(--black) py-2 px-2 rounded"
                         >
                           {categories.length ? (
                             categories.map((c) => (
@@ -142,6 +150,7 @@ export default function Summary() {
                         <input
                           type="number"
                           value={row.quantity}
+                          min="0"
                           onChange={(e) =>
                             updateRow(idx, "quantity", e.target.value)
                           }
@@ -152,21 +161,20 @@ export default function Summary() {
                         <input
                           type="number"
                           value={row.amount}
+                          min="0"
+                          step="0.01"
                           onChange={(e) =>
                             updateRow(idx, "amount", e.target.value)
                           }
                           className="border bg-(--white) border-(--grey-600) text-(--black) py-2 px-2 rounded w-32"
                         />
                       </td>
-                      <td className="py-3 pr-6">
-                        <input
-                          type="text"
-                          value={row.description}
-                          onChange={(e) =>
-                            updateRow(idx, "description", e.target.value)
-                          }
-                          className="border bg-(--white) border-(--grey-600)  text-(--black) py-2 px-2 rounded w-full"
-                        />
+                      <td className="py-3 pr-6 font-semibold text-(--black)">
+                        $
+                        {(row.quantity * row.amount).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                     </tr>
                   ))}
@@ -181,7 +189,6 @@ export default function Summary() {
               >
                 Add row
               </button>
-
               <button
                 onClick={handleSaveAll}
                 className="flex items-center gap-2 bg-(--blue) text-(--white) py-2 px-4 rounded hover:bg-(--blue)/85"

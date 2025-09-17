@@ -50,7 +50,7 @@ function ExpensesTable({ filteredCategory = null }) {
                   </td>
                   <td className="py-3 pr-6">{expense.description}</td>
                   <td className="py-3 pr-6">{expense.quantity}</td>
-                  <td className="py-3 pr-6 font-semibold">₦{expense.amount}</td>
+                  <td className="py-3 pr-6 font-semibold">${expense.amount}</td>
                 </tr>
               ))}
             </tbody>
