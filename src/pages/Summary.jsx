@@ -2,6 +2,7 @@ import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { ExpenseContext } from "../context/ExpenseContext";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Summary() {
   const { receipts, clearReceipts, addExpense, categories } =
@@ -65,10 +66,11 @@ export default function Summary() {
   };
 
   const handleSaveAll = () => {
-    console.log(rows, "rows");
+    const receiptId = uuidv4();
     rows.forEach((r) => {
       addExpense({
         ...r,
+        receipt_id: receiptId,
         date: summaryDate,
       });
     });

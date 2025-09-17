@@ -66,13 +66,14 @@ export function ExpenseProvider({ children }) {
     const totalAmount = quantity * unitAmount;
 
     const newExpensePayload = {
+      receipt_id: expense.receipt_id,
       date: expense.date,
       category: expense.category,
       description: expense.description,
       currency: "$",
       quantity: quantity,
       unit_amount: unitAmount,
-      total_amount: totalAmount,
+      total_amount: Math.round(totalAmount * 100) / 100,
     };
 
     try {
@@ -120,9 +121,16 @@ export function ExpenseProvider({ children }) {
         }
       };
     });
+    console.log(rawText, "response");
+    await summarizeReceipt(rawText);
+  }
 
-    // --- Step 2: Build a Dynamic Prompt for Gemini ---
-    const categoryList = categories.join(", "); // Use categories from state
+  async function summarizeReceipt(rawText) {
+    if (!rawText) {
+      return "There's no text to summarize";
+    }
+
+    const categoryList = categories.join(", ");
     const prompt = `
       Extract all purchased items from the following receipt text and summarize them in a single JSON object.
       The object must have two keys:
