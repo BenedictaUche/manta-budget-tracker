@@ -66,7 +66,7 @@ export default function Summary() {
   };
 
   const handleSaveAll = () => {
-    const receiptId = uuidv4();
+    const receiptId = `receipt-${uuidv4().slice(0, 7)}`;
     rows.forEach((r) => {
       addExpense({
         ...r,
