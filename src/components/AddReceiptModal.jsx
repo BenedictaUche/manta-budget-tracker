@@ -1,10 +1,12 @@
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 export default function AddReceiptModal({ onClose }) {
   const [fileName, setFileName] = useState("");
   const [receiptFile, setReceiptFile] = useState(null);
+  const { categories, setReceipts } = useContext(ExpenseContext);
+  const [loading, setIsLoading] = useState(false);
 
   const backdropRef = useRef();
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ export default function AddReceiptModal({ onClose }) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
 
-    await new Promise((resolve, reject) => {
+    const rawText = await new Promise((resolve, reject) => {
       reader.onloadend = async () => {
         try {
           const result = reader.result.split(",")[1];
@@ -44,12 +46,62 @@ export default function AddReceiptModal({ onClose }) {
 
           const data = await res.json();
 
-          console.log(data, "response");
+          const annotations = data.responses[0].textAnnotations;
+          console.log(annotations[0].description, "new format");
+
+          if (annotations && annotations.length > 0) {
+            resolve(annotations[0].description);
+          }
+
+          // console.log(data, "response");
         } catch (err) {
-          console.log(err);
+          reject(err);
         }
       };
     });
+
+    await summarizeReceipt(rawText);
+  }
+
+  async function summarizeReceipt(rawText) {
+    const categoryList = categories.join(",");
+
+    const prompt = `Extract all purchased items from the following receipt text and summarize them in a single JSON object.
+    The object must have two keys:
+    1. "items": an array of purchased items. Each item object in the array should include:
+    - "category": Must be one of the following: [${categoryList}] or "Other" if no other category fits.
+    - "description": The name of the item. "quantity": The numeric quantity, default to 1 if not specified. "amount": The numeric unit price for a single item. "total_amount": The final numeric total amount from the receipt. Return only the raw JSON object and nothing else. Receipt text: "${rawText}"`;
+
+    const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
+
+    const geminiBody = {
+      contents: [
+        {
+          parts: [
+            {
+              text: prompt,
+            },
+          ],
+        },
+      ],
+    };
+
+    const geminiRes = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(geminiBody),
+    });
+
+    const geminiData = await geminiRes.json();
+
+    const JsonResponse = geminiData.candidates[0].content.parts[0].text;
+
+    const cleanResponse = JsonResponse.replace(/```json\n?|```/g, "").trim();
+
+    const response = JSON.parse(cleanResponse);
+
+    setReceipts([response]);
   }
 
   const handleUpload = async (e) => {
@@ -61,10 +113,16 @@ export default function AddReceiptModal({ onClose }) {
     //   date: new Date().toISOString().slice(0, 10),
     // };
     // addReceipt(receiptObj);
-
-    await analyzeReceiptWithVision(receiptFile);
-    onClose();
-    // navigate("/summary");
+    setIsLoading(true);
+    try {
+      await analyzeReceiptWithVision(receiptFile);
+      navigate("/summary");
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+      onClose();
+    }
   };
 
   return (
@@ -144,7 +202,7 @@ export default function AddReceiptModal({ onClose }) {
               type="submit"
               className="w-full flex items-center justify-center gap-2 bg-(--blue) text-(--white) font-medium py-3 rounded-lg hover:bg-(--blue)/85 transition cursor-pointer"
             >
-              Upload and Review
+              {loading ? "LOADING... " : "Upload Receipt"}
             </button>
             <button
               type="button"

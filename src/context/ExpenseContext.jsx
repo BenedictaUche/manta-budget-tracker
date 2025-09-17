@@ -6,6 +6,9 @@ export const ExpenseContext = createContext();
 
 const ADD_EXPENSE_URL = import.meta.env.VITE_ADD_EXPENSE_URL;
 
+// GET EXPENSE URL
+const GET_EXPENSE_URL = import.meta.env.VITE_GET_EXPENSE_URL;
+
 export function ExpenseProvider({ children }) {
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState(["FOOD", "RENT", "UTILITIES"]);
@@ -27,6 +30,25 @@ export function ExpenseProvider({ children }) {
     setReceipts([]);
   }
 
+  async function fetchAllExpenses() {
+    const response = await axios.get(GET_EXPENSE_URL);
+
+    if (response.data.data) {
+      const formattedResponse = response.data.data.map((item) => ({
+        id: item.id,
+        date: item.date,
+        category: item.category,
+        description: item.description,
+        amount: item.total_amount,
+        quantity: item.quantity,
+      }));
+
+      setExpenses(formattedResponse);
+    }
+    console.log(response, "response");
+    // if(response.)
+  }
+
   async function addExpense(expense) {
     const quantity = Number(expense.quantity) || 1;
     const unitAmount = Number(expense.amount) || 0;
@@ -45,6 +67,7 @@ export function ExpenseProvider({ children }) {
 
     try {
       await axios.post(ADD_EXPENSE_URL, newExpensePayload);
+      fetchAllExpenses();
     } catch (error) {
       console.error("error adding ", error);
     }
@@ -57,6 +80,7 @@ export function ExpenseProvider({ children }) {
         setExpenses,
         budget,
         categories,
+        setReceipts,
         setBudget,
         addExpense,
         addCategory,
