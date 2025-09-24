@@ -24,12 +24,25 @@ function Expenses() {
 
       <div className="pt-8 px-4 sm:pt-12 sm:px-6 lg:px-10 w-full">
         <header className="mb-8 sm:mb-10">
+          {/* <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div> */}
+
           <h1 className="text-(--black) text-3xl lg:text-4xl font-semibold tracking-tighter mb-2 sm:mb-3 mt-9">
             Expenses
           </h1>
           <p className="uppercase text-sm sm:text-base tracking-tight font-extrabold text-(--grey) mb-4 sm:mb-2">
             View, organize, and add your expenses by category
           </p>
+
+          {/* INSIGHTS BUTTON */}
+          {/* </div>
+            <button
+              onClick={}
+              className="bg-(--yellow) tracking-tight p-3 cursor-pointer hover:bg-(--yellow)/85 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              GET SPENDING INSIGHTS
+            </button>
+          </div> */}
 
           {/* Budget Input */}
           <div className="my-6">

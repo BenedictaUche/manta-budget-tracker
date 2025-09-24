@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import axios from "axios";
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -45,9 +45,13 @@ export function ExpenseProvider({ children }) {
 
       setExpenses(formattedResponse);
     }
-    console.log(response, "response");
+    // console.log(response, "response");
     // if(response.)
   }
+
+  useEffect(() => {
+    fetchAllExpenses();
+  });
 
   async function addExpense(expense) {
     const quantity = Number(expense.quantity) || 1;

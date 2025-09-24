@@ -1,0 +1,47 @@
+#  const prompt = `
+#       Extract all purchased items from the following receipt text and summarize them in a single JSON object.
+#       The object must have two keys:
+#       1. "items": an array of purchased items. Each item object in the array should include:
+#          - "category": Must be one of the following: [${categoryList}] or "Other" if no other category fits.
+#          - "description": The name of the item.
+#          - "quantity": The numeric quantity, default to 1 if not specified.
+#          - "amount": The numeric unit price for a single item.
+#       2. "total_amount": The final numeric total amount from the receipt.
+
+#       Return only the raw JSON object and nothing else.
+
+#       Receipt text:
+#       "${rawText}"
+#     `;
+
+
+///////////////////////////////////
+=> INSIGHTS PROMPT
+
+You are a financial advisor analyzing expense data. Calculate spending patterns and provide specific, actionable insights.
+
+Expense Data:
+${JSON.stringify(expenses)}
+
+Analyze the data and return this EXACT JSON format:
+
+{
+  "summary": "Your biggest expense category is [CATEGORY] at $[AMOUNT]. You spent most on [DATE/PATTERN].",
+  "advice": "Save $[AMOUNT] by [SPECIFIC ACTION LIKE 'buying in bulk' or 'meal planning']."
+}
+
+Requirements:
+- Calculate actual dollar amounts and percentages
+- Identify the highest spending category
+- Find spending patterns (dates, frequency, amounts)
+- Give specific money-saving advice with estimated savings
+- Mention exact amounts where possible
+- Be direct about wasteful spending if you see it
+
+Examples of good responses:
+- "Your biggest expense is FOOD at $247. Most purchases happened on Dec 15th."
+- "Save $50 monthly by consolidating grocery trips instead of daily small purchases."
+
+Focus on: highest spending categories, spending frequency patterns, potential consolidation savings, bulk buying opportunities.
+
+Return ONLY the JSON object.
