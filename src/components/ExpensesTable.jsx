@@ -8,6 +8,7 @@ function ExpensesTable({ filteredCategory = null }) {
     ? expenses.filter((e) => e.category === filteredCategory)
     : expenses;
 
+console.log(expenses, 'expenses');
   if (loading) {
     return (
       <div className="bg-(--white) rounded-xl border border-(--grey-900)/80 p-6">

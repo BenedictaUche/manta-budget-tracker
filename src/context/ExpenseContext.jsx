@@ -1,11 +1,34 @@
 import React, { createContext, useCallback, useEffect, useState } from "react";
-import axios from "axios";
+import MantaClient from "mantahq-sdk";
+import { v4 as uuidv4 } from "uuid";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const ExpenseContext = createContext();
 
-const ADD_EXPENSE_URL = import.meta.env.VITE_ADD_EXPENSE_URL;
-const GET_EXPENSES_URL = import.meta.env.VITE_GET_EXPENSES_URL;
+// first pass the imported MantaClient to a manta variable
+// create a fetch expense function to get the expenses from Manta - it will return nothing at first but creating the addExpense and running it will add data to the manta table and return something with fetchExpense
+// next create a useEffect for fetchExpense so that on mount it will fetch the expenses
+// create an addExpenses function to add the receipt items to the expenses state
+
+// Next, we want to create a expense manually, so we will go to the AddExpenseModal component and import the addExpense function from context and call it on form submit
+
+// After successfully adding a manual expense, we will move on to the receipt upload and processing
+// We will create a processReceipt function that will handle the file upload, call the Vision API to extract text, then call the Gemini API to summarize and categorize the items
+// ----How it works is ----
+// 1. The processReceipt function reads the uploaded image file and converts it to a base64 string
+// 2. It then sends this base64 string to the Google Vision API to perform OCR and extract the raw text from the receipt image
+// 3. Once we have the raw text, we construct a prompt for the Gemini API to extract and categorize the items into a structured JSON format
+// 4. We call the Gemini API with this prompt and receive a JSON response containing the categorized items
+// 5. Finally, we update the receipts state with this structured data so it can be reviewed and saved as expenses
+// 6. The already created addExpenses function takes the items from the receipts state and batch save them to Manta as individual expense records
+// 7. After saving, we clear the receipts state to reset for future uploads
+// 8. The processReceipt function will be added to the context so it can be called from the AddReceiptModal component when a file is uploaded
+
+
+
+const manta = new MantaClient({
+  sdkKey: import.meta.env.VITE_MANTA_SDK_KEY,
+});
 
 export function ExpenseProvider({ children }) {
   const [expenses, setExpenses] = useState([]);
@@ -30,16 +53,28 @@ export function ExpenseProvider({ children }) {
   }
 
   // FETCH EXPENSE
-
   const fetchExpenses = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(GET_EXPENSES_URL);
-      if (response.data.data && Array.isArray(response.data.data)) {
-        const formattedExpenses = response.data.data.map((e) => ({
+      const response = await manta.fetchAllRecords({
+        table: "manta-expense-tracker",
+        fields: [
+          "id",
+          "date",
+          "category",
+          "description",
+          "currency",
+          "quantity",
+          "unit_amount",
+          "total_amount",
+        ],
+      });
+
+      if (response?.data && Array.isArray(response.data)) {
+        const formattedExpenses = response.data.map((e) => ({
           id: e.id,
           date: e.date,
-          category: e.category.toUpperCase() || "GENERAL",
+          category: e.category?.toUpperCase() || "GENERAL",
           description: e.description,
           amount: Number(e.total_amount) || 0,
           quantity: Number(e.quantity) || 1,
@@ -59,28 +94,46 @@ export function ExpenseProvider({ children }) {
     fetchExpenses();
   }, [fetchExpenses]);
 
-  async function addExpense(expense) {
-    const quantity = Number(expense.quantity) || 1;
-    const unitAmount = Number(expense.amount) || 0;
+  // UNIFIED: Handles single expense or array of expenses
+  async function createExpense(expenseInput) {
+    const isArray = Array.isArray(expenseInput);
+    const expensesList = isArray ? expenseInput : [expenseInput];
 
-    const totalAmount = quantity * unitAmount;
+    const today = new Date().toISOString().split("T")[0];
+    const payloads = expensesList.map((expense) => {
+      const quantity = Number(expense.quantity) || 1;
+      const unitAmount = Number(expense.unit_amount || expense.amount) || 0; // Flexible key support
+      const totalAmount = quantity * unitAmount;
 
-    const newExpensePayload = {
-      receipt_id: expense.receipt_id,
-      date: expense.date,
-      category: expense.category,
-      description: expense.description,
-      currency: "$",
-      quantity: quantity,
-      unit_amount: unitAmount,
-      total_amount: Math.round(totalAmount * 100) / 100,
-    };
+      return {
+        receipt_id: expense.receipt_id || `receipt-${uuidv4()}`,
+        date: expense.date || today,
+        category: expense.category,
+        description: expense.description || "",
+        currency: "$",
+        quantity: quantity,
+        unit_amount: unitAmount,
+        total_amount: Math.round(totalAmount * 100) / 100,
+      };
+    });
 
     try {
-      await axios.post(ADD_EXPENSE_URL, newExpensePayload);
+      const result = await manta.createRecords({
+        table: "manta-expense-tracker",
+        data: payloads,
+        options: {
+          continueOnError: true,
+        },
+      });
+      console.log(`${isArray ? "Batch" : "Single"} expense(s) added:`, result);
       fetchExpenses();
+
+      // Clear receipts if batch (from receipts state)
+      if (isArray && receipts.length && receipts[0]?.items) {
+        clearReceipts();
+      }
     } catch (error) {
-      console.error("error adding ", error);
+      console.error("Error creating expense(s):", error);
     }
   }
 
@@ -149,7 +202,7 @@ export function ExpenseProvider({ children }) {
 
     // --- Step 3: Call Gemini API ---
     const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
 
     const geminiBody = { contents: [{ parts: [{ text: prompt }] }] };
     const geminiRes = await fetch(geminiUrl, {
@@ -184,7 +237,8 @@ export function ExpenseProvider({ children }) {
         setBudget,
         loading,
         processReceipt,
-        addExpense,
+        createExpense, // UNIFIED: Expose for both single and batch
+        setReceipts,
         addCategory,
         receipts,
         addReceipt,

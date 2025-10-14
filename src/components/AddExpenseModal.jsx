@@ -1,9 +1,13 @@
 import { useRef, useState, useContext } from "react";
 import Input from "./Input";
 import { ExpenseContext } from "../context/ExpenseContext";
+import { v4 as uuidv4 } from "uuid";
 
 export default function AddExpenseModal({ onClose }) {
-  const { addExpense, categories } = useContext(ExpenseContext);
+// first, import the addExpense and categories from context
+// call the appExpense function on form submit, passing the new expense data
+
+  const { createExpense, categories} = useContext(ExpenseContext); // UPDATED: Use unified createExpense
   const backdropRef = useRef();
 
   const [amount, setAmount] = useState("");
@@ -12,8 +16,8 @@ export default function AddExpenseModal({ onClose }) {
   const [newExpense, setNewExpense] = useState({
     description: "",
     category: "",
-    unit_amount: "",
-    total_amount: "",
+    date: "", // Ensure date is included
+    unit_amount: "", // For unit amount
   });
 
   if (!newExpense.category && categories.length) {
@@ -26,16 +30,17 @@ export default function AddExpenseModal({ onClose }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => { // Make async for await
     e.preventDefault();
 
     const unit = Number(amount) || 0;
     const qty = Number(quantity) || 1;
 
-    addExpense({
+    await createExpense({
       ...newExpense,
       quantity: qty,
-      amount: unit,
+      unit_amount: unit, // Use unit_amount key
+      receipt_id: `receipt-${uuidv4()}`, // Generate ID
     });
 
     onClose();

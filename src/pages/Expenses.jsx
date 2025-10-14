@@ -7,8 +7,7 @@ import ExpensesTable from "../components/ExpensesTable";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 function Expenses() {
-  const { addCategory, budget, setBudget, categories } =
-    useContext(ExpenseContext);
+  const { addCategory, budget, setBudget, categories } = useContext(ExpenseContext);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);

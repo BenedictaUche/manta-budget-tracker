@@ -5,7 +5,7 @@ import { ExpenseContext } from "../context/ExpenseContext";
 import { v4 as uuidv4 } from "uuid";
 
 export default function Summary() {
-  const { receipts, clearReceipts, addExpense, categories } =
+  const { receipts, clearReceipts, categories, createExpense } =
     useContext(ExpenseContext);
   const [rows, setRows] = useState([]);
 
@@ -39,7 +39,7 @@ export default function Summary() {
         },
       ]);
     }
-  }, [receipts]);
+  }, [receipts, categories]);
 
   const updateRow = (idx, key, value) => {
     setRows((prev) => {
@@ -65,17 +65,24 @@ export default function Summary() {
     ]);
   };
 
-  const handleSaveAll = () => {
-    const receiptId = `receipt-${uuidv4().slice(0, 7)}`;
-    rows.forEach((r) => {
-      addExpense({
-        ...r,
-        receipt_id: receiptId,
+  // UPDATED: Build from rows and use unified createExpense
+  const handleSaveAll = async () => {
+    try {
+      const expenseList = rows.map((row) => ({
+        category: row.category,
+        description: row.description,
+        quantity: row.quantity,
+        amount: row.amount, // Maps to unit_amount in payload
         date: summaryDate,
-      });
-    });
-    clearReceipts();
-    navigate("/expenses");
+        receipt_id: `receipt-${uuidv4()}`, // Shared or per-item; adjust as needed
+      }));
+
+      await createExpense(expenseList);
+      clearReceipts();
+      navigate("/expenses");
+    } catch (error) {
+      console.error("Error saving batch:", error);
+    }
   };
 
   return (

@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@tailwindcss/vite": "^4.1.12",
     "axios": "^1.11.0",
+    "mantahq-sdk": "^1.0.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-nice-avatar": "^1.5.0",
