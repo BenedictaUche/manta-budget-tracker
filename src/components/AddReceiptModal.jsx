@@ -5,8 +5,12 @@ import { ExpenseContext } from "../context/ExpenseContext";
 export default function AddReceiptModal({ onClose }) {
   const [fileName, setFileName] = useState("");
   const [receiptFile, setReceiptFile] = useState(null);
-  const { categories, setReceipts } = useContext(ExpenseContext);
+  // const [isUploading, setIsUploading] = useState(false);
+  // const { categories, setReceipts } = useContext(ExpenseContext);
   const [loading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const { processReceipt } = useContext(ExpenseContext);
+
 
   const backdropRef = useRef();
   const navigate = useNavigate();
@@ -17,113 +21,23 @@ export default function AddReceiptModal({ onClose }) {
     }
   };
 
-  async function analyzeReceiptWithVision(file) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-
-    const rawText = await new Promise((resolve, reject) => {
-      reader.onloadend = async () => {
-        try {
-          const result = reader.result.split(",")[1];
-
-          const apiKey = import.meta.env.VITE_GOOGLE_VISION_API_KEY;
-          const url = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
-
-          const body = {
-            requests: [
-              {
-                image: { content: result },
-                features: [{ type: "TEXT_DETECTION" }],
-              },
-            ],
-          };
-
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          });
-
-          const data = await res.json();
-
-          const annotations = data.responses[0].textAnnotations;
-          console.log(annotations[0].description, "new format");
-
-          if (annotations && annotations.length > 0) {
-            resolve(annotations[0].description);
-          }
-
-          // console.log(data, "response");
-        } catch (err) {
-          reject(err);
-        }
-      };
-    });
-
-    await summarizeReceipt(rawText);
-  }
-
-  async function summarizeReceipt(rawText) {
-    const categoryList = categories.join(",");
-
-    const prompt = `Extract all purchased items from the following receipt text and summarize them in a single JSON object.
-    The object must have two keys:
-    1. "items": an array of purchased items. Each item object in the array should include:
-    - "category": Must be one of the following: [${categoryList}] or "Other" if no other category fits.
-    - "description": The name of the item. "quantity": The numeric quantity, default to 1 if not specified. "amount": The numeric unit price for a single item. "total_amount": The final numeric total amount from the receipt. Return only the raw JSON object and nothing else. Receipt text: "${rawText}"`;
-
-    const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
-
-    const geminiBody = {
-      contents: [
-        {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      ],
-    };
-
-    const geminiRes = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(geminiBody),
-    });
-
-    const geminiData = await geminiRes.json();
-
-    const JsonResponse = geminiData.candidates[0].content.parts[0].text;
-
-    const cleanResponse = JsonResponse.replace(/```json\n?|```/g, "").trim();
-
-    const response = JSON.parse(cleanResponse);
-
-    setReceipts([response]);
-  }
-
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!fileName) return;
-    // const receiptObj = {
-    //   id: Date.now(),
-    //   fileName,
-    //   date: new Date().toISOString().slice(0, 10),
-    // };
-    // addReceipt(receiptObj);
-    setIsLoading(true);
+    console.log("Uploading receipt:", receiptFile);
+    if (!receiptFile || isUploading) return;
+
+    setIsUploading(true);
     try {
-      await analyzeReceiptWithVision(receiptFile);
+      console.log("Processing receipt...");
+      await processReceipt(receiptFile);
       navigate("/summary");
     } catch (error) {
-      console.log(error);
+      console.log("Error processing receipt:", error);
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
       onClose();
     }
-  };
+  }
 
   return (
     <div

@@ -4,13 +4,14 @@ import Sidebar from "../components/Sidebar";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 export default function Summary() {
-  const { receipts, clearReceipts, addExpense, categories } =
+  const { receipts, clearReceipts, addExpense, categories, createExpense } =
     useContext(ExpenseContext);
   const [rows, setRows] = useState([]);
 
-  const [summaryDate, setSummaryDate] = useState(
-    new Date().toISOString().slice(0, 10)
+  const [summaryDate, setSummaryDate] = useState(new Date().toISOString().slice(0, 10)
   );
+
+  console.log(receipts, "receipts in summary");
 
   const navigate = useNavigate();
 
@@ -38,7 +39,7 @@ export default function Summary() {
         },
       ]);
     }
-  }, [receipts]);
+  }, [receipts, categories]);
 
   const updateRow = (idx, key, value) => {
     setRows((prev) => {
@@ -64,16 +65,22 @@ export default function Summary() {
     ]);
   };
 
-  const handleSaveAll = () => {
-    console.log(rows, "rows");
-    rows.forEach((r) => {
-      addExpense({
-        ...r,
+  const handleSaveAll = async () => {
+    try {
+      const expenseList = rows.map((row) => ({
+        category: row.category,
+        description: row.description,
+        quantity: row.quantity,
+        amount: row.amount,
         date: summaryDate,
-      });
-    });
-    clearReceipts();
-    navigate("/expenses");
+        receipt_id: row.receipt_id,
+      }));
+      await createExpense(expenseList);
+      clearReceipts();
+      navigate("/expenses");
+    } catch (error) {
+      console.error("Error saving expenses:", error);
+    }
   };
 
   return (

@@ -17,9 +17,9 @@ export default function AddExpenseModal({ onClose }) {
     // total_amount: "",
   });
 
-  if (!newExpense.category && categories.length) {
-    newExpense.category = categories[0];
-  }
+  // if (!newExpense.category && categories.length) {
+  //   newExpense.category = categories[0];
+  // }
 
   const handleBackdropClick = (e) => {
     if (e.target === backdropRef.current) {
@@ -31,9 +31,9 @@ export default function AddExpenseModal({ onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    addExpense({
-      ...newExpense,
-    });
+    // addExpense({
+    //   ...newExpense,
+    // });
 
     onClose();
   };

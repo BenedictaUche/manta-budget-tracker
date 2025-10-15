@@ -1,20 +1,77 @@
-#  const prompt = `
-#       Extract all purchased items from the following receipt text and summarize them in a single JSON object.
-#       The object must have two keys:
-#       1. "items": an array of purchased items. Each item object in the array should include:
-#          - "category": Must be one of the following: [${categoryList}] or "Other" if no other category fits.
-#          - "description": The name of the item.
-#          - "quantity": The numeric quantity, default to 1 if not specified.
-#          - "amount": The numeric unit price for a single item.
-#       2. "total_amount": The final numeric total amount from the receipt.
+const prompt = `
+      Extract all purchased items from the following receipt text and summarize them in a single JSON object.
+      The object must have two keys:
+      1. "items": an array of purchased items. Each item object in the array should include:
+         - "category": Must be one of the following: [${categoryList}] or "Other" if no other category fits.
+         - "description": The name of the item.
+         - "quantity": The numeric quantity, default to 1 if not specified.
+         - "amount": The numeric unit price for a single item.
+      2. "total_amount": The final numeric total amount from the receipt.
 
-#       Return only the raw JSON object and nothing else.
+      Return only the raw JSON object and nothing else.
 
-#       Receipt text:
-#       "${rawText}"
-#     `;
+      Receipt text:
+      "${rawText}"
+    `;
+// reader.onload
+
+const rawText = await new Promise((resolve, reject) => {
+      reader.onloadend = async () => {
+        try {
+          const base64Image = reader.result.split(",")[1];
+          const visionApiKey = import.meta.env.VITE_GOOGLE_VISION_API_KEY;
+          const visionUrl = `https://vision.googleapis.com/v1/images:annotate?key=${visionApiKey}`;
+          const body = {
+            requests: [
+              {
+                image: { content: base64Image },
+                features: [{ type: "TEXT_DETECTION" }],
+              },
+            ],
+          };
+
+          const res = await fetch(visionUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json();
+          console.log(data, "vision response");
+          const annotations = data.responses[0].textAnnotations;
+
+          if (annotations && annotations.length > 0) {
+            resolve(annotations[0].description);
+          } else {
+            reject("No text detected");
+          }
+        } catch (err) {
+          reject(err);
+        }
+      };
+    });
+
+const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
+
+    const geminiBody = { contents: [{ parts: [{ text: prompt }] }] };
+    const geminiRes = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(geminiBody),
+    });
+
+    if (!geminiRes.ok) throw new Error("Failed to call Gemini API");
+
+    const geminiData = await geminiRes.json();
+    console.log(geminiData, "logged");
 
 
+    const rawJsonResponse = geminiData.candidates[0].content.parts[0].text;
+    const cleanedJson = rawJsonResponse.replace(/```json\n?|```/g, "").trim();
+    const structuredReceipt = JSON.parse(cleanedJson);
+
+    console.log("Structured data from Gemini:", structuredReceipt);
+    setReceipts([structuredReceipt]); // We wrap it in an array for consistency
 ///////////////////////////////////
 => INSIGHTS PROMPT
 
